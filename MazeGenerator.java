@@ -1,6 +1,8 @@
-import java.awt.Color;
+/**import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.Font;**/
+import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -30,6 +32,10 @@ class Cell{
 	public void set(int x, int y){
 		this.x = x;
 		this.y = y;
+	}
+	
+	public String toString(){
+		return "(" + x + ", " + y + ")";
 	}
 }
 
@@ -66,8 +72,6 @@ class Maze extends JPanel {
         initialize();
         
         primsAlgorithm();
-        
-        printMaze();
     }
 
 	//enum for state
@@ -94,31 +98,39 @@ class Maze extends JPanel {
     //paintComponent is called last
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Font font = new Font("Arial", Font.PLAIN, 12);
+        Graphics2D g2d = (Graphics2D) g;    
+		g2d.setFont(font);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
        
         //draw grid
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
+        for (int i = 0; i < maze.length; i++) {
+            for (int j = 0; j < maze[i].length; j++) {
+				g2d.setColor(Color.BLACK);
+				g2d.drawRect(i * scale, j * scale, scale, scale);
                 switch (maze[i][j]) {
                     case 0:
-                        g.setColor(Color.WHITE);
+                        g2d.setColor(Color.WHITE);
                         break;
                     case 1:
-                        g.setColor(Color.RED);
+                        g2d.setColor(Color.RED);
                         break;
                     case 2:
-                        g.setColor(Color.BLACK);
+                        g2d.setColor(Color.BLACK);
                         break;
                     case 3:
-						g.setColor(Color.GREEN);
+						g2d.setColor(Color.GREEN);
 						break;
 					case 4:
-						g.setColor(Color.RED);
+						g2d.setColor(Color.RED);
 						break;
                 }
-                g.drawRect(i * scale, j * scale, scale, scale);
+                String val = String.valueOf(maze[i][j]);
+				//g2d.drawString(val, i * scale, j * scale);
                 g.fillRect(i * scale, j * scale, scale, scale);
             }
         }
+        
 
     }
 
@@ -141,20 +153,23 @@ class Maze extends JPanel {
      */
     private void primsAlgorithm(){
 		//starting cell
-		int startX = 3;
-		int startY = 3;
+		int startX = 1;
+		int startY = 1;
 		Cell currCell = new Cell(startX, startY);
+		Cell lastCell = null;
+		System.out.println("start at " + currCell);
 		//marking starting cell as part of the maze
 		pickStart(currCell);
 		
 		//adding the walls of the cell to the wall list
 		addWalls(currCell);
 		
-		//while(!wallList.isEmpty()){
-		for(int i = 0; i < 2; i++){
-			printWallList();
+		while(!wallList.isEmpty()){
+		//for(int i = 0; i < 200; i++){
+			if(DEBUG) printWallList();
 			int randWallPos = (int) (Math.random() * wallList.size());
 			Cell randCell = wallList.get(randWallPos);
+			lastCell = randCell;
 			
 			maze[randCell.getX()][randCell.getY()] = State.PASSAGE.value;
 			
@@ -162,52 +177,83 @@ class Maze extends JPanel {
 			
 			//the cell on the opposite side needs to be checked; we need this value so we can know which cell to check
 			//direction can be 0 - up, 1 - right, 2 - down, 3 - left in a clockwise fashion, because clocks are cool
-			int direction = getDirection(currCell, randCell);
+			/**int direction = getDirection(currCell, randCell);
+			String dir;
+			if(direction == 0){
+				dir = "UP";
+			}else if(direction == 1){
+				dir = "RIGHT";
+			}else if(direction == 2){
+				dir = "DOWN";
+			}else if(direction == 3){
+				dir = "LEFT";
+			}else{
+				dir = "NULL";
+			}
+			System.out.println("Direction: " + dir);**/
 			
-			System.out.println("Direction: " + direction);
-			
-			switch(direction){
+			/**switch(direction){
 				case 0: //UP
 					if(maze[randCell.getX()][randCell.getY() - 1] == State.WALL.value){
-						maze[randCell.getX()][randCell.getY() - 1] = State.END.value;
+						maze[randCell.getX()][randCell.getY() - 1] = State.FRONTIER.value;
 					}
 					break;
 				case 1: // RIGHT
 					if(maze[randCell.getX() + 1][randCell.getY()] == State.WALL.value){
-						maze[randCell.getX() + 1][randCell.getY()] = State.END.value;
+						maze[randCell.getX() + 1][randCell.getY()] = State.FRONTIER.value;
 					}
 					break;
 				case 2: //DOWN
 					if(maze[randCell.getX()][randCell.getY() + 1] == State.WALL.value){
-						maze[randCell.getX()][randCell.getY() + 1] = State.END.value;
+						maze[randCell.getX()][randCell.getY() + 1] = State.FRONTIER.value;
 					}
 					break;
 				case 3: // LEFT
 					if(maze[randCell.getX() - 1][randCell.getY()] == State.WALL.value){
-						maze[randCell.getX() - 1][randCell.getY()] = State.END.value;
+						maze[randCell.getX() - 1][randCell.getY()] = State.FRONTIER.value;
 					}
 					break;
-			}
+			}**/
 			makePassage(randCell);
 			addWalls(randCell);
-			
-		}
+			removeFromList(randCell);
+			if(DEBUG){
+				printWallList();        
+				printMaze();
+			}
 		//}
+		}
+		
+		markEnd(lastCell);
+		
+		
 	}
         
     private void pickStart(Cell startCell) {
         maze[startCell.getX()][startCell.getY()] = State.START.value;
     }
     
+    private void markEnd(Cell endCell) {
+        maze[endCell.getX()][endCell.getY()] = State.END.value;
+    }
+    
+    private void removeFromList(Cell cell){
+		for(int i = 0; i < wallList.size(); i++){
+			if(wallList.get(i).getX() == cell.getX() && wallList.get(i).getY() == cell.getY()){
+				wallList.remove(wallList.get(i));
+			}
+		}
+	}
+    
     private void makePassage(Cell randCell){
 		maze[randCell.getX()][randCell.getY()] = State.PASSAGE.value;
 	}
     
     private int getDirection (Cell currCell, Cell randCell) {
-		System.out.println(currCell.getX());
-		System.out.println(currCell.getY());
-		System.out.println(randCell.getX());
-		System.out.println(randCell.getY());
+		System.out.println("current cell's X: " + currCell.getX());
+		System.out.println("current cell's Y: " + currCell.getY());
+		System.out.println("random cell's X: " + randCell.getX());
+		System.out.println("random cell's Y: " + randCell.getY());
 		if(currCell.getX() == randCell.getX() && currCell.getY() + 1 == randCell.getY()){
 			//up
 			return Direction.UP.value;
@@ -225,58 +271,105 @@ class Maze extends JPanel {
 	}
     
     private void addWalls(Cell cell){
-		System.out.println("x: " + cell.getX());
-		System.out.println("y: " + cell.getY());
+		System.out.print("add walls to (" + cell.getX());
+		System.out.print(", " + cell.getY() + ")\n");
 		System.out.println("rows: " + (width / scale));
 		System.out.println("cols: " + (height / scale));
 		//bounds checking, we need to leave a border around the maze
 		if(cell.getY() + 1 > 0 && cell.getY() + 1 < cols){
 			//check up wall
 			if(maze[cell.getX()][cell.getY() + 1] == State.WALL.value) {
-				wallList.add(new Cell(cell.getX(), cell.getY() + 1));
-				maze[cell.getX()][cell.getY() + 1] = State.FRONTIER.value;
+				Cell upCell = new Cell(cell.getX(), cell.getY() + 1);
+				if(isValidFrontier(upCell)){
+					wallList.add(upCell);
+					maze[cell.getX()][cell.getY() + 1] = State.FRONTIER.value;
+				}
 			}
 		}
 		if(cell.getX() + 1 > 0 && cell.getX() + 1 < rows){
 			//check right wall
 			if(maze[cell.getX() + 1][cell.getY()] == State.WALL.value) {
-				wallList.add(new Cell(cell.getX() + 1, cell.getY()));
-				maze[cell.getX() + 1][cell.getY()] = State.FRONTIER.value;
+				Cell rightCell = new Cell(cell.getX() + 1, cell.getY());
+				if(isValidFrontier(rightCell)){
+					wallList.add(rightCell);
+					maze[cell.getX() + 1][cell.getY()] = State.FRONTIER.value;
+				}
 			}
 		}
 		if(cell.getY() - 1 > 0 && cell.getY() - 1 < cols){
 			//check down wall
 			if(maze[cell.getX()][cell.getY() - 1] == State.WALL.value) {
-				wallList.add(new Cell(cell.getX(), cell.getY() - 1));
-				maze[cell.getX()][cell.getY() - 1] = State.FRONTIER.value;
+				Cell downCell = new Cell(cell.getX(), cell.getY() - 1);
+				if(isValidFrontier(downCell)){
+					wallList.add(downCell);
+					maze[cell.getX()][cell.getY() - 1] = State.FRONTIER.value;
+				}
 			}
 		}
 		if(cell.getX() - 1 > 0 && cell.getX() - 1 < rows){
 			//check left wall
 			if(maze[cell.getX() - 1][cell.getY()] == State.WALL.value) {
-				wallList.add(new Cell(cell.getX() - 1, cell.getY()));
-				maze[cell.getX() - 1][cell.getY()] = State.FRONTIER.value;
+				Cell leftCell = new Cell(cell.getX() - 1, cell.getY());
+				if(isValidFrontier(leftCell)){
+					wallList.add(leftCell);
+					maze[cell.getX() - 1][cell.getY()] = State.FRONTIER.value;
+				}
 			}
 		}
 
     }
     
+    private boolean isValidFrontier(Cell cell){
+		int walls = 0;
+		//check up wall
+		if(cell.getY() < cols - 1){
+			if(maze[cell.getX()][cell.getY() + 1] == State.WALL.value) {
+				walls++;
+			}
+		}
+		//check right wall
+		if(cell.getX() < rows - 1){
+			if(maze[cell.getX() + 1][cell.getY()] == State.WALL.value) {
+				walls++;
+			}
+		}
+		//check down wall
+		if(cell.getY() > 0){
+			if(maze[cell.getX()][cell.getY() - 1] == State.WALL.value) {
+				walls++;
+			}
+		}
+		//check left wall
+		if(cell.getX() > 0){
+			if(maze[cell.getX() - 1][cell.getY()] == State.WALL.value) {
+				walls++;
+			}
+		}
+		
+		if(walls == 3){
+			return true;
+		}
+		return false;
+	}
+    
     //prints maze for debugging
     private void printMaze() {
         for (int i = 0; i < rows; i++) {
+			System.out.println();
             for (int j = 0; j < cols; j++) {
-                System.out.print(maze[i][j] + " ");
+                System.out.print(maze[j][i] + " ");
             }
-            System.out.println();
         }
     }
     
     //prints wall list for debugging
     private void printWallList(){
+		System.out.println("Wall List: " );
 		for(int i = 0; i < wallList.size(); i++){
 			System.out.println("Wall list at " + i);
-			System.out.println("X: " + wallList.get(i).getX());
-			System.out.println("Y: " + wallList.get(i).getY());
+			System.out.println(wallList.get(i));
+			//System.out.println("X: " + wallList.get(i).getX());
+			//System.out.println("Y: " + wallList.get(i).getY());
 		}
 	}
 
@@ -284,8 +377,8 @@ class Maze extends JPanel {
 
 public class MazeGenerator {
 
-    //static int HEIGHT = 337;
-    //static int WIDTH = 315;
+    static int HEIGHT = 337;
+    static int WIDTH = 315;
 
     /**
      * @param args the command line arguments
@@ -301,13 +394,13 @@ public class MazeGenerator {
                 
                 int height = 300;
                 int width = 300;
-                int scale = 30;
+                int scale = 10;
                 
                 Maze maze = new Maze(height, width, scale);
 
                 JFrame window = new JFrame();
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                window.setSize(width, height);
+                window.setSize(WIDTH, HEIGHT);
                 window.add(maze);
                 //window.setResizable(false);
                 window.setVisible(true);
