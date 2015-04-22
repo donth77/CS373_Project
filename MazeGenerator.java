@@ -39,8 +39,7 @@ public class MazeGenerator extends JPanel {
 
     private static final int MaxWidth = 120, MaxHeight = 80, BorderWidth = 8;
     private static int cellScale = 10;
-
-    private PrimMaze primMaze;
+    
     private Maze maze;
 
     private static int mazeHeight;
@@ -96,7 +95,6 @@ public class MazeGenerator extends JPanel {
     }
 
     private void createMaze() {
-        //maze = new PrimMaze(75, 50, cellScale);
         maze = new Maze(2000, 1200, 50);
         state = State.Generating;
     }
