@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package mazegen;
 
 import java.awt.*;
@@ -29,6 +34,9 @@ public class MazeGenerator extends JPanel {
     private JButton continueButton = new JButton("Continue");
 
     private JButton stepButton = new JButton("Step");
+    
+    private JRadioButton primsButton = new JRadioButton("Prim's");
+    private JRadioButton kruskalsButton = new JRadioButton("Kruskal's");
 
     private static final Dimension buttonDim = new Dimension(150, 32);
     private static final Dimension buttonDim2 = new Dimension(600, 100);
@@ -39,7 +47,7 @@ public class MazeGenerator extends JPanel {
 
     private static final int MaxWidth = 120, MaxHeight = 80, BorderWidth = 8;
     private static int cellScale = 10;
-    
+
     private Maze maze;
 
     private static int mazeHeight;
@@ -49,9 +57,11 @@ public class MazeGenerator extends JPanel {
 
     private Timer timer;
 
-    private static JSlider animationSlider = new JSlider(0, 2000);
+    private static JSlider animationSlider = new JSlider(0, 100);
 
     private static JCheckBox checkBox = new JCheckBox();
+    
+    private int algorithm = 1;
 
     private enum State {
 
@@ -62,6 +72,7 @@ public class MazeGenerator extends JPanel {
         setLayout(new FlowLayout());
 
         timer = new Timer(0, new TimerListener());
+        timer.setInitialDelay(0);
 
         MouseListener listener = new MouseListener();
 
@@ -89,25 +100,48 @@ public class MazeGenerator extends JPanel {
 
         animationSlider.setLocation(displayOffX, displayOffY + 200);
         animationSlider.setInverted(true);
+        animationSlider.setValue(timer.getDelay());
         add(animationSlider);
+        
+        primsButton.setLocation(displayOffX + 25, displayOffY + 40);
+        primsButton.setSize(buttonDim2);
+        primsButton.addMouseListener(listener);
+        add(primsButton);
+        
+        kruskalsButton.setLocation(displayOffX + 25, displayOffY + 40);
+        kruskalsButton.setSize(buttonDim2);
+        kruskalsButton.addMouseListener(listener);
+        kruskalsButton.setSelected(true);
+        add(kruskalsButton);
 
         add(checkBox);
     }
 
     private void createMaze() {
-        maze = new Maze(2000, 1200, 50);
+        maze = new Maze(2300, 1200, 100, algorithm);
         state = State.Generating;
     }
 
     public void buildMaze() {
         if (!checkBox.isSelected()) {
-            while (!maze.primsAlgorithmStep());
+            if(algorithm == 0){
+                while (!maze.primsAlgorithmStep());
+            }else{
+                while (!maze.kruskalsAlgorithmStep());
+            }
             repaint();
             setIdle();
         } else {
-            if (maze.primsAlgorithmStep()) {
-                setIdle();
-                timer.setDelay(animationSlider.getValue());
+            if(algorithm == 0){
+                if (maze.primsAlgorithmStep()) {
+                    setIdle();
+                    timer.setDelay(animationSlider.getValue());
+                }
+            }else{
+                if (maze.kruskalsAlgorithmStep()) {
+                    setIdle();
+                    timer.setDelay(animationSlider.getValue());
+                }   
             }
             repaint();
         }
@@ -127,7 +161,6 @@ public class MazeGenerator extends JPanel {
                 createMaze();
                 pauseButton.setEnabled(true);
                 timer.start();
-                //buildMaze();
             } else if (e.getSource() == pauseButton) {
                 timer.stop();
                 pauseButton.setEnabled(false);
@@ -140,6 +173,12 @@ public class MazeGenerator extends JPanel {
             } else if (e.getSource() == stepButton) {
                 timer.stop();
                 buildMaze();
+            } else if(e.getSource() == primsButton){
+                algorithm = 0;
+                kruskalsButton.setSelected(false);
+            } else if(e.getSource() == kruskalsButton){
+                algorithm = 1;
+                primsButton.setSelected(false);
             }
         }
 
@@ -173,10 +212,10 @@ public class MazeGenerator extends JPanel {
         g.fillRect(0, 0, getWidth(), BorderWidth);
         g.fillRect(getWidth() - BorderWidth, 0, BorderWidth, getHeight());
 
-        g.fillRect(0, getHeight() - BorderWidth, getWidth(), BorderWidth);
+        /**g.fillRect(0, getHeight() - BorderWidth, getWidth(), BorderWidth);
         g.fillRect(0, 0, BorderWidth, getHeight());
 
-        g.fillRect(displayOffX - BorderWidth, 0, BorderWidth, getHeight());
+        g.fillRect(displayOffX - BorderWidth, 0, BorderWidth, getHeight());**/
 
         // Paints the maze, offset by the border
         Graphics drawMaze = g.create();
