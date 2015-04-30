@@ -15,20 +15,43 @@ public class TestGenerator {
 	public void runTests() {
 		
 		XYSeriesCollection result = new XYSeriesCollection();
-		XYSeries series = new XYSeries("Prim's Algorithm");
-		
-		for (int i = 1000; i <= 30000; i+=100) {
-			long startTime = System.currentTimeMillis();
-			Maze m = new Maze(i, i, 10);
-			long endTime = System.currentTimeMillis();
-			series.add(i, (int)(endTime-startTime));
+                int cellSize = 10;
+                int min = 100;
+                int max = 1000;
+                int increment = 100;
+                String title = "Minimum Spanning Tree Algorithms for Random Maze Generation";
+                
+              XYSeries seriesP = new XYSeries("Prim's Algorithm");
+              XYSeries seriesK = new XYSeries("Kruskal's Algorithm");
+              
+		for (int i = min; i <= max; i+= increment) {
+			Maze mp = new Maze(i, i, cellSize, 0);
+                        long startTimeP = System.currentTimeMillis();
+                        while (!mp.primsAlgorithmStep());
+			long endTimeP = System.currentTimeMillis();
+                        long durationP = endTimeP - startTimeP;
+                        System.out.println("prim's: " + durationP  + " ms");
+			seriesP.add(i, durationP);
+                        
+                        Maze mk = new Maze(i, i, cellSize, 1);
+                        long startTimeK = System.currentTimeMillis();
+                        while (!mk.kruskalsAlgorithmStep());
+			long endTimeK = System.currentTimeMillis();
+                        long durationK = endTimeK - startTimeK;
+                        System.out.println("kruskal's: " + durationK + " ms");
+			seriesK.add(i, durationK);
 		}
-		
-		result.addSeries(series);
-		JFreeChart chart = ChartFactory.createScatterPlot("Test Data", "Maze Size", "Time (ms)", result);
-		ChartFrame frame = new ChartFrame("Test Data", chart);
+                
+                result.addSeries(seriesP);
+                result.addSeries(seriesK);
+		JFreeChart chart = ChartFactory.createScatterPlot(title, "Maze Size", "Time (ms)", result);
+		ChartFrame frame = new ChartFrame(title, chart);
 		frame.pack();
 		frame.setVisible(true);
 	}
+        
+        public static void main(String[] args){
+            TestGenerator tests = new TestGenerator();
+        }
 
 }
